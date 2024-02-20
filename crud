@@ -1,0 +1,131 @@
+app.py
+
+
+from flask import Flask, render_template, request, redirect, url_for
+from flask_mysqldb import MySQL
+
+app = Flask(__name__)
+
+# MySQL configurations
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'your_username'
+app.config['MYSQL_PASSWORD'] = 'your_password'
+app.config['MYSQL_DB'] = 'your_database_name'
+
+mysql = MySQL(app)
+
+@app.route('/')
+def index():
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM users')
+    data = cur.fetchall()
+    cur.close()
+    return render_template('index.html', users=data)
+
+@app.route('/add', methods=['POST'])
+def add_user():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO users (name, email) VALUES (%s, %s)', (name, email))
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('index'))
+
+@app.route('/delete/<int:id>', methods=['GET'])
+def delete_user(id):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM users WHERE id = %s', (id,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>CRUD Web App</h1>
+    <form action="{{ url_for('add_user') }}" method="POST">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <button type="submit">Add User</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user[0] }}</td>
+                <td>{{ user[1] }}</td>
+                <td>{{ user[2] }}</td>
+                <td><a href="{{ url_for('delete_user', id=user[0]) }}">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+
+
+
+
+
+
+style.css
+
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+}
+
+form {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="email"],
+button {
+    margin-right: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
