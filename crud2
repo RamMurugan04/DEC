@@ -1,0 +1,128 @@
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post" action="#">
+        <input type="text" name="hrs" placeholder="hours">
+        <button type="submit" name="sub">Submit</button>
+    </form>
+</body>
+</html>
+
+
+login.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post" action="#">
+        <input type="text" name="signupuser" placeholder="username">
+        <input type="text" name="signuppass" placeholder="password">
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <form method="post" action="\login">
+        <input type="text" name="user" placeholder="username">
+        <input type="text" name="pass" placeholder="password">
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+
+
+
+app.py
+
+
+
+# python -m venv venv
+# venv\Scripts\activate
+# pip install flask
+# pip install flask_mysqldb
+# pip install pyyaml
+# flask run
+
+from flask import Flask, render_template, request, redirect,session, url_for
+from flask_mysqldb import MySQL
+import yaml
+from yaml import FullLoader
+
+app = Flask(__name__)
+app.debug=True
+
+db_path = r'C:\Users\uksha\Desktop\Shankesh\Sleep Tracker\venv\db.yaml'
+db = yaml.load(open(db_path), Loader=FullLoader)
+app.config['MYSQL_HOST'] = db['mysql_host']
+app.config['MYSQL_USER'] = db['mysql_user']
+app.config['MYSQL_PASSWORD'] = db['mysql_password']
+app.config['MYSQL_DB'] = db['mysql_db']
+
+mysql = MySQL(app)
+app.secret_key='abcdefg'
+
+@app.route('/', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        details=request.form
+        username = details['signupuser']
+        password = details['signuppass']
+        cur = mysql.connection.cursor()
+        cur.execute("Insert into login(user,password) values(%s,%s)",(username,password))
+        mysql.connection.commit()
+        cur.close()
+    return render_template('login.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method=='POST':
+        details=request.form
+        username = details['user']
+        password = details['pass']
+
+        cur=mysql.connection.cursor()
+        result = cur.execute("Select * from login where user=%s and password=%s",(username,password))
+        if result>0:
+            return redirect('/track')
+        else:
+            return render_template('login.html')
+
+@app.route('/track', methods=['GET', 'POST'])
+def track():
+    if request.method == 'POST':
+        details = request.form
+        hours = details['hrs']
+        print(hours)
+        cur = mysql.connection.cursor()
+        cur.execute("Insert into sleep_tracker(hours) values(%s)",(hours,))
+        mysql.connection.commit()
+        cur.close()
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run()
+
+
+
+db.yaml
+
+
+
+mysql_host: 'localhost'
+mysql_user: 'root'
+mysql_password: 'shankesh03'
+mysql_db: 'sleep'
+
+
+
+
