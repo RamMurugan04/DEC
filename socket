@@ -1,0 +1,153 @@
+Server side:
+
+import socket
+import threading
+
+client_list = list()
+
+def on_new_client(clientsocket,addr):
+    while True:
+        msg = clientsocket.recv(1024).decode('ascii')
+        for client in client_list:
+            if client != (clientsocket,addr):
+                messg = "<" + str(addr[1]) + "> " + str(msg)
+                client[0].send(messg.encode('ascii'))
+        if msg == "Goodbye":
+            clientsocket.close()
+
+serversocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+host = socket.gethostname()
+port = 9994
+
+serversocket.bind((host,port))
+serversocket.listen(5)
+
+while True:
+    clientsocket,addr=serversocket.accept()
+    client_list.append((clientsocket,addr))
+    print("Got connection from %s"%str(addr))
+    threading._start_new_thread(on_new_client,(clientsocket,addr))
+    
+
+Client side:
+
+import socket
+import threading
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = 'AMCS-SCL-15'                         
+port = 9994
+s.connect((host, port))                               
+
+outp = ""
+
+def receive_msg():
+    while True:   
+        outp=s.recv(1024)
+        outp = outp.decode('ascii')
+        print(outp)
+
+def send_msg():
+    while True:
+        text = input().split("\n")[-1]
+        s.send(text.encode('ascii'))
+    
+
+threading.Thread(target=receive_msg).start().join()
+threading.Thread(target=send_msg).start().join()
+
+s.close()
+
+
+
+2)
+
+Server side:
+
+import socket
+import threading
+import os
+
+client_list = list()
+
+def server_split(text_file):
+    print("Inside the function")
+    with open(text_file,"r") as f:
+        data = f.readlines()
+    firsthalf="part-1 "+text_file
+    secondhalf="part-2 "+text_file      
+    with open(firsthalf,"w") as f1:
+        for line in data[:len(data)//2]:
+            f1.write(line)
+       
+    with open(secondhalf,"w") as f2:
+        for line in data[len(data)//2:]:
+            f2.write(line)
+    print("Successfully split the file.")
+
+def on_new_client(clientsocket,addr):
+    while True:
+        msg = clientsocket.recv(1024).decode('ascii')
+        if msg == "ft":
+            clientsocket.send("yes".encode('ascii'))
+            outputFromClient = "server "+clientsocket.recv(1024).decode('ascii')
+            with open(outputFromClient,"w") as f:
+                msg = clientsocket.recv(1024).decode('ascii')
+                clientsocket.send("ok".encode('ascii'))
+                while(msg == "1"):
+                    txt = clientsocket.recv(1024).decode('ascii')
+                    f.write(txt)
+                    msg = clientsocket.recv(1024).decode('ascii')
+        server_split(outputFromClient)  
+        if msg == "Goodbye":
+            clientsocket.close()
+     
+   
+           
+           
+serversocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+host = socket.gethostname()
+port = 9994
+
+serversocket.bind((host,port))
+serversocket.listen(5)
+
+while True:
+    clientsocket,addr=serversocket.accept()
+    client_list.append((clientsocket,addr))
+    print("Got connection from %s"%str(addr))
+    threading._start_new_thread(on_new_client,(clientsocket,addr))
+
+
+Client side:
+
+
+import socket
+import math
+import os
+
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+host = socket.gethostname()
+port = 9994
+s.connect((host,port))
+
+while True:
+    file_name = input("File name: ")
+    s.send("ft".encode('ascii'))
+    reply = s.recv(1024).decode('ascii')
+    if reply=="yes":
+        with open(file_name,"r") as f:
+            s.send(file_name.encode('ascii'))
+            size = os.path.getsize(file_name)
+            passes = math.floor(size/1024) + 1
+            for i in range(passes):
+                s.send("1".encode('ascii'))
+                if s.recv(1024).decode('ascii') == "ok":
+                    if passes-i-1==0:
+                        txt = f.read()
+                    else:
+                        txt = f.read(1024)
+                    s.send(txt.encode('ascii'))
+            s.send("0".encode('ascii'))
