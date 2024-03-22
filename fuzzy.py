@@ -48,11 +48,11 @@ def partition(x):
     PL=0
    
     if x>0 and x<61:
-        NL=openLeft(x, 31, 63)
+        NL=openLeft(x, 31, 61)
     if x>31 and x<95:
-        NM=triangular(x, 31, 63, 95)
+        NM=triangular(x, 31, 61, 95)
     if x>61 and x<127:
-        NS=triangular(x, 63, 95, 127)
+        NS=triangular(x, 61, 95, 127)
     if x>95 and x<159:
         ZE=triangular(x, 95, 127, 159)
     if x>127 and x<191:
@@ -112,8 +112,8 @@ def areaOL(mu,a,b):
 
 def areaOR(mu,a,b):
     xOR=mu*(b-a)+a
-    aOR=0.5*mu*((240-a)+(240-xOR))
-    return aOR,(240-a)/2+a
+    aOR=0.5*mu*((255-a)+(255-xOR))
+    return aOR,(255-a)/2+a
 
 def defuzzyfication(PLTC,PMTC,PSTC,NSTC,NLTC):
     areaPL=0
@@ -137,11 +137,11 @@ def defuzzyfication(PLTC,PMTC,PSTC,NSTC,NLTC):
         areaPS=areaTR(PSTC, 127, 159, 191)
         cPS=159
     if NSTC != 0:
-        areaNS = areaTR(NSTC, 63, 95, 127)
+        areaNS = areaTR(NSTC, 61, 95, 127)
         cNS = 95
        
     if NLTC !=0:
-        areaNL, cNL = areaOL(NLTC, 0, 63)
+        areaNL, cNL = areaOL(NLTC, 0, 61)
        
     numerator = areaPL*cPL + areaPM*cPM + areaPS*cPS + areaNS*cNS + areaNL*cNL
     denominator = areaPL + areaPM + areaPS + areaNS + areaNL
@@ -171,25 +171,25 @@ spd = ctrl.Antecedent(ip1, 'spd')
 acc = ctrl.Antecedent(ip1, 'acc')
 throttle = ctrl.Consequent(ip1, 'throttle')
 
-spd['NL']=fuzz.trapmf(spd.universe, [0,0,31,63])
-spd['NM']=fuzz.trimf(spd.universe, [31,63,95])
-spd['NS']=fuzz.trimf(spd.universe, [63,95,127])
+spd['NL']=fuzz.trapmf(spd.universe, [0,0,31,61])
+spd['NM']=fuzz.trimf(spd.universe, [31,61,95])
+spd['NS']=fuzz.trimf(spd.universe, [61,95,127])
 spd['ZE']=fuzz.trimf(spd.universe, [95,127,159])
 spd['PS']=fuzz.trimf(spd.universe, [127,159,191])
 spd['PM']=fuzz.trimf(spd.universe, [159,191,223])
 spd['PL']=fuzz.trapmf(spd.universe, [191,223,255,255])
 
-acc['NL']=fuzz.trapmf(spd.universe, [0,0,31,63])
-acc['NM']=fuzz.trimf(spd.universe, [31,63,95])
-acc['NS']=fuzz.trimf(spd.universe, [63,95,127])
+acc['NL']=fuzz.trapmf(spd.universe, [0,0,31,61])
+acc['NM']=fuzz.trimf(spd.universe, [31,61,95])
+acc['NS']=fuzz.trimf(spd.universe, [61,95,127])
 acc['ZE']=fuzz.trimf(spd.universe, [95,127,159])
 acc['PS']=fuzz.trimf(spd.universe, [127,159,191])
 acc['PM']=fuzz.trimf(spd.universe, [159,191,223])
 acc['PL']=fuzz.trapmf(spd.universe, [191,223,255,255])
 
-throttle['NL']=fuzz.trapmf(spd.universe, [0,0,31,63])
-throttle['NM']=fuzz.trimf(spd.universe, [31,63,95])
-throttle['NS']=fuzz.trimf(spd.universe, [63,95,127])
+throttle['NL']=fuzz.trapmf(spd.universe, [0,0,31,61])
+throttle['NM']=fuzz.trimf(spd.universe, [31,61,95])
+throttle['NS']=fuzz.trimf(spd.universe, [61,95,127])
 throttle['ZE']=fuzz.trimf(spd.universe, [95,127,159])
 throttle['PS']=fuzz.trimf(spd.universe, [127,159,191])
 throttle['PM']=fuzz.trimf(spd.universe, [159,191,223])
